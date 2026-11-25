@@ -1,6 +1,6 @@
 # Benchmark & Observability Report — Day 14
 
-> Số liệu trong báo cáo được trích xuất trực tiếp từ các file report JSON trong `reports/` (`06-lab-complete/benchmark-observability/develop/reports/`) và sẽ được bổ sung phần Observability stack + Scaling (`benchmark-results/*.csv`, screenshots) ở CP8.
+> Số liệu trong báo cáo được trích xuất trực tiếp từ các file report JSON trong `reports/` (`06-lab-complete/benchmark-observability/develop/reports/`), file CSV Locust trong `benchmark-results/` và số liệu đo/ảnh chụp thực tế từ stack Observability (`screenshots/`).
 
 **Họ tên:** Lê Văn Hoàng (`K5-L3A · 2A202603357`)
 **Ngày chạy:** 2026-11-25
