@@ -100,8 +100,15 @@ Client ──(HTTP :80 / HTTPS :443)──▶ Nginx (nginx:alpine, rate limit 10
 
 ## Part 3: Cloud Deployment
 
-### Exercise 3.1 / 3.2: Cloud Deployment (`06-lab-complete/` lên Railway hoặc Render)
-- **Trạng thái Public URL (CP6):** *(Đang chờ bạn kết nối GitHub/tạo service + Redis trên Railway hoặc Render để lấy URL public, chạy 4 lệnh `curl`, chụp 3 ảnh vào `screenshots/` và tạo `DEPLOYMENT.md`.)*
+### Exercise 3.1 / 3.2: Cloud Deployment (`06-lab-complete/` lên Render)
+- **Public URL:** `https://k5-l3a-day14-levanhoang-2a202603357.onrender.com` (Render Web Service `Docker`, Root Directory `06-lab-complete`, nối tới Render Key Value/Redis `k5-day14-redis` cùng region `Singapore`).
+- **Kết quả kiểm tra thật trên URL public:**
+  - `GET /health` → `HTTP 200` (`{"status":"healthy","environment":"production"}`)
+  - `GET /ready` → `HTTP 200` (`{"status":"ready","redis":"connected"}`)
+  - `POST /ask` (không có `X-API-Key`) → `HTTP 401` (`{"detail":"Invalid or missing X-API-Key header"}`)
+  - `POST /ask` (có `X-API-Key` hợp lệ) → `HTTP 200`
+  - `check_production_ready.py --public-url https://k5-l3a-day14-levanhoang-2a202603357.onrender.com` → **`Result: 12/12 tiêu chí đạt · 44/44 checks passed`** (`🎉 PASS 12/12 — PRODUCTION READY! Deploy nào!`).
+- **Deliverables đính kèm:** [DEPLOYMENT.md](DEPLOYMENT.md) và ảnh chụp tại `screenshots/dashboard.png`, `screenshots/running.png`, `screenshots/test.png`.
 
 ### So sánh `railway.toml` vs `render.yaml`
 Khi cấu hình deploy container Docker cho `06-lab-complete/`:
@@ -341,10 +348,10 @@ Chạy trong WSL2 Ubuntu (`DOCKER_BUILDKIT=0 ~/day14-venv/bin/python check_produ
   - *Hỏi gì:* Nhờ AI đối chiếu các TODO trong `06-lab-complete/` (`app/*.py`, `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`, `railway.toml`, `render.yaml`) với tiêu chí của `check_production_ready.py` (mà không chỉnh sửa `check_production_ready.py`).
   - *Nhận gì:* Thiết kế các module production (`Settings` qua `os.getenv`, Redis client có timeout + non-blocking startup, `APIKeyHeader` trả `401` dùng `secrets.compare_digest`, sliding-window ZSET dùng UUID tránh trùng member ở tốc độ cao, Cost Guard `DAILY_BUDGET_USD`/`MONTHLY_BUDGET_USD` trả `402`, `JsonFormatter`, nối `SIGTERM` + `exec uvicorn` làm PID 1).
   - *Tự sửa & tự kiểm tra:* Chạy `check_production_ready.py` lần lượt ở chế độ `--static-only` (`28/28` checks) rồi chế độ đầy đủ trong WSL2 Docker (`12/12 tiêu chí · 43/43 checks passed`, image `238 MB`, `docker stop` `0.9s`), tự test thêm `docker compose -p k5-day14-part6 up -d --build` xác nhận `/health` `200`, `/ready` `200`, `/ask` không key `401`, và kiểm tra `git diff` bảo đảm `check_production_ready.py` & `utils/mock_llm.py` còn nguyên vẹn.
-- **Part 3 (phần offline trước deploy):**
-  - *Hỏi gì:* Nhờ AI đối chiếu `06-lab-complete/railway.toml`, `render.yaml`, `03-cloud-deployment/render/render.yaml` và phân tích `03-cloud-deployment/production-cloud-run/` (`cloudbuild.yaml`, `service.yaml`).
-  - *Nhận gì:* Bảng so sánh khác biệt TOML single-service vs YAML Blueprint đa service và tóm tắt 4 bước CI/CD Cloud Run.
-  - *Tự sửa & tự kiểm tra:* Tự đọc trực tiếp toàn bộ file cấu hình `cloudbuild.yaml`, `service.yaml`, `railway.toml`, `render.yaml` để kiểm tra đúng tên trường, probe (`/health`, `/ready`) và tham số scale trước khi đưa vào báo cáo; phần live Public URL đang chờ deploy ở CP6.
+- **Part 3 (CP6 — Render Cloud Deployment):**
+  - *Hỏi gì:* Nhờ AI hướng dẫn từng bước cấu hình Render (`Key Value` Redis + `Web Service` Docker với Root Directory `06-lab-complete`), đối chiếu `06-lab-complete/railway.toml`, `render.yaml`, `03-cloud-deployment/render/render.yaml` và phân tích `03-cloud-deployment/production-cloud-run/`.
+  - *Nhận gì:* Bộ 6 biến môi trường chuẩn cho Render Dashboard (không lộ secret trong repo), bảng so sánh TOML single-service vs YAML Blueprint đa service và tóm tắt 4 bước CI/CD Cloud Run.
+  - *Tự sửa & tự kiểm tra:* Tự tạo `k5-day14-redis` + Web Service `Docker` trên Render đạt trạng thái `Live` tại `https://k5-l3a-day14-levanhoang-2a202603357.onrender.com`; tự kiểm chứng `/health` (`200`), `/ready` (`200`, `redis: connected`), `/ask` không key (`401`), `/ask` có key (`200`), và chạy `check_production_ready.py --public-url ...` đạt `12/12 tiêu chí · 44/44 checks passed` trước khi lưu ảnh và hoàn tất `DEPLOYMENT.md`.
 - **Part 7 Bước 1 (CP7):**
   - *Hỏi gì:* Nhờ AI hướng dẫn chạy bộ benchmark local (`develop/`), viết Histogram `agent_question_length_chars` (Exercise 7.1) và xác định nguyên nhân `scaling-03`, `security-02` bị fail ở `eval_v2`.
   - *Nhận gì:* Đoạn code `Histogram` đúng chuẩn cardinality thấp, lệnh chạy `load_test.py` ở 4 mức concurrency & 3 mức `MOCK_SLOW_RATE`, và cách bổ sung `KNOWLEDGE_BASE` trong `mock_llm.py` + workflow `.github/workflows/eval.yml`.
